@@ -20,7 +20,7 @@
     <main class="dashboard">
       <!-- Left Column: WebDAV File Browser -->
       <section class="column left-column">
-        <FileBrowser @folder-selected="onFolderSelected" />
+        <FileBrowser @track-selected="onTrackFromWebDAV" />
       </section>
 
       <!-- Center Column: Playlist Manager -->
@@ -73,9 +73,18 @@ async function checkWebDAV() {
   }
 }
 
-function onFolderSelected(folder) {
-  // Update the root path in the webdav service context
-  // The playlist manager will show the new folder's contents
+// When clicking a file in the WebDAV browser, add it to the playlist and play it
+function onTrackFromWebDAV(track) {
+  // Add to playlist via the playlist ref
+  if (playlistRef.value?.addTrack) {
+    playlistRef.value.addTrack({
+      id: track.url,
+      name: track.name,
+      url: track.url,
+    })
+  }
+  // Play it immediately
+  onTrackSelected(track)
 }
 
 function onTrackSelected(track) {

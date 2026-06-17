@@ -16,44 +16,41 @@
     </div>
 
     <div class="playlist-content" @dragover.prevent @drop="handleDrop">
+      <el-empty v-if="treeData.length === 0" description="Click files from WebDAV Explorer" :image-size="60" />
+
       <el-tree
+        v-else
         ref="treeRef"
         :data="treeData"
         :props="treeProps"
         node-key="id"
+        :default-expanded-keys="expandedKeys"
         draggable
         :allow-drag="allowDrag"
         @node-click="handleNodeClick"
-        @node-drag-end="handleDragEnd"
       >
         <template #default="{ node, data }">
           <span class="custom-node" :class="{ 'is-folder': data.type === 'folder' }">
             <el-icon v-if="data.type === 'folder'" class="node-icon folder">
-              <Folder />
+              <FolderOpened />
             </el-icon>
             <el-icon v-else class="node-icon music">
               <Headset />
             </el-icon>
-            <span class="node-label">{{ node.label }}</span>
+            <span class="node-label" :title="data.name">{{ node.label }}</span>
             <el-icon
               v-if="data.type === 'track' && data.url"
-              class="node-action"
+              class="node-action play-btn"
               @click.stop="playTrack(data)"
             >
               <VideoPlay />
             </el-icon>
             <el-icon v-if="data.type === 'track'" class="node-action remove" @click.stop="removeTrack(data)">
-              <Close />
+              <CircleCloseFilled />
             </el-icon>
           </span>
         </template>
       </el-tree>
-
-      <div v-if="playlist.length === 0" class="empty-state">
-        <el-icon :size="48" color="#555"><Headset /></el-icon>
-        <p>No tracks in playlist</p>
-        <p class="hint">Click files in the WebDAV Explorer to add them</p>
-      </div>
     </div>
 
     <!-- Add Folder Dialog -->
@@ -63,8 +60,8 @@
       width="400px"
       :close-on-click-modal="false"
     >
-      <el-form @submit.prevent="createFolder">
-        <el-form-item label="Folder Name" required>
+      <el-form>
+        <el-form-item label="Folder Name">
           <el-input v-model="newFolderName" placeholder="Enter folder name..." autofocus />
         </el-form-item>
       </el-form>
@@ -80,8 +77,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { ElTree, ElDialog, ElForm, ElFormItem, ElInput, ElButton, ElMessage } from 'element-plus'
-import { List, Plus, Delete, Folder, Headset, VideoPlay, Close } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { List, Plus, Delete, FolderOpened, Headset, VideoPlay, CircleCloseFilled } from '@element-plus/icons-vue'
 
 const emit = defineEmits(['track-selected'])
 
@@ -90,14 +87,10 @@ const showAddFolderDialog = ref(false)
 const newFolderName = ref('')
 let nextId = 1
 
-const playlist = ref([
-  { id: '__root__', name: 'My Playlist', type: 'folder', children: [] },
-])
+const playlist = ref([])
+const expandedKeys = ref([])
 
-const treeData = computed(() => {
-  const root = playlist.value.find((p) => p.id === '__root__')
-  return root ? [root] : []
-})
+const treeData = computed(() => playlist.value)
 
 const treeProps = {
   label: 'name',
@@ -119,38 +112,84 @@ function findNodeById(nodes, id) {
   return null
 }
 
-function findParentNode(nodes, id, parent = null) {
+function findParentByPath(nodes, id, path = []) {
   for (const node of nodes) {
-    if (node.id === id) return parent
+    const currentPath = [...path, node.id]
+    if (node.id === id) return currentPath
     if (node.children) {
-      const found = findParentNode(node.children, id, node)
-      if (found !== undefined) return found
+      const found = findParentByPath(node.children, id, currentPath)
+      if (found) return found
     }
   }
-  return undefined
+  return null
 }
 
-function addTrack(track) {
+function addToParent(parentId, item) {
+  const root = playlist.value.find((p) => p.id === parentId)
+  if (root) {
+    if (!root.children) root.children = []
+    root.children.push(item)
+  }
+}
+
+function addTrack(track, parentPath = null) {
   const root = playlist.value.find((p) => p.id === '__root__')
   if (!root) return
 
-  const exists = findNodeById(root.children, track.id)
+  const exists = findNodeById(root.children || [], track.id)
   if (exists) {
     ElMessage.warning('Track already in playlist')
     return
   }
 
-  root.children.push(track)
+  if (parentPath && parentPath.length > 0) {
+    const targetFolder = findNodeById(root.children || [], parentPath[parentPath.length - 1])
+    if (targetFolder) {
+      if (!targetFolder.children) targetFolder.children = []
+      targetFolder.children.push(track)
+    } else {
+      root.children.push(track)
+    }
+  } else {
+    if (!root.children) root.children = []
+    root.children.push(track)
+  }
+
   ElMessage.success(`Added: ${track.name}`)
+}
+
+function addFolderToParent(parentId, name) {
+  const root = playlist.value.find((p) => p.id === parentId)
+  if (root) {
+    if (!root.children) root.children = []
+    root.children.push({
+      id: generateId(),
+      name,
+      type: 'folder',
+      children: [],
+    })
+    return true
+  }
+  return false
 }
 
 function removeTrack(track) {
   const root = playlist.value.find((p) => p.id === '__root__')
   if (!root) return
 
-  const idx = root.children.findIndex((c) => c.id === track.id)
-  if (idx !== -1) {
-    root.children.splice(idx, 1)
+  function removeFromChildren(children) {
+    const idx = children.findIndex((c) => c.id === track.id)
+    if (idx !== -1) {
+      children.splice(idx, 1)
+      return true
+    }
+    for (const child of children) {
+      if (child.children && removeFromChildren(child.children)) return true
+    }
+    return false
+  }
+
+  if (root.children && removeFromChildren(root.children)) {
     ElMessage.info(`Removed: ${track.name}`)
   }
 }
@@ -197,15 +236,43 @@ function allowDrag({ node }) {
   return node.data.type === 'track'
 }
 
-function handleDragEnd() {
-  // Reorder could be implemented here if needed
-}
-
 function handleDrop(event) {
-  // Drop from external source (e.g., WebDAV browser)
+  // External drop target
 }
 
-defineExpose({ addTrack, playlist })
+function addTrackFromWebDAV(name, url, folderId = null) {
+  const track = {
+    id: generateId(),
+    name,
+    type: 'track',
+    url,
+  }
+
+  const root = playlist.value.find((p) => p.id === '__root__')
+  if (!root) return
+
+  if (folderId) {
+    const parentPath = findParentByPath(root.children || [], folderId)
+    if (parentPath) {
+      let target = root
+      for (let i = 0; i < parentPath.length; i++) {
+        target = (target.children || []).find((c) => c.id === parentPath[i])
+        if (!target) break
+      }
+      if (target && target.type === 'folder') {
+        if (!target.children) target.children = []
+        target.children.push(track)
+        return
+      }
+    }
+  }
+
+  if (!root.children) root.children = []
+  root.children.push(track)
+  ElMessage.success(`Added: ${name}`)
+}
+
+defineExpose({ addTrack: addTrackFromWebDAV, playlist })
 </script>
 
 <style scoped>
@@ -249,7 +316,6 @@ defineExpose({ addTrack, playlist })
   flex: 1;
   overflow-y: auto;
   padding: 8px 0;
-  transition: background 0.2s;
 }
 
 .playlist-content::-webkit-scrollbar {
@@ -299,12 +365,12 @@ defineExpose({ addTrack, playlist })
   font-size: 16px;
 }
 
-.node-icon.folder {
-  color: #f0a500;
+.folder {
+  color: #fbbf24;
 }
 
-.node-icon.music {
-  color: #00d2ff;
+.music {
+  color: #4ade80;
 }
 
 .node-label {
@@ -313,47 +379,35 @@ defineExpose({ addTrack, playlist })
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
-  color: #ccc;
-}
-
-:deep(.el-tree-node.is-current > .el-tree-node__content .node-label) {
-  color: #fff;
 }
 
 .node-action {
   flex-shrink: 0;
-  cursor: pointer;
-  color: #666;
   font-size: 14px;
-  transition: color 0.2s;
-  padding: 2px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: pointer;
 }
 
-.node-action:hover {
+.custom-node:hover .node-action {
+  opacity: 0.7;
+}
+
+.node-action.play-btn {
   color: #00d2ff;
 }
 
+.node-action.play-btn:hover {
+  opacity: 1;
+  color: #00e5ff;
+}
+
 .node-action.remove:hover {
-  color: #e94560;
+  opacity: 1;
+  color: #f87171;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 12px;
-  color: #555;
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 14px;
-}
-
-.empty-state .hint {
-  font-size: 12px;
-  color: #444;
+:deep(.el-empty) {
+  margin-top: 60px;
 }
 </style>
