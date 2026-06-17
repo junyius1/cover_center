@@ -755,7 +755,7 @@ wheels = [
 
 [[package]]
 name = "fireworks-ai"
-version = "1.2.0a75"
+version = "1.2.0a82"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -767,9 +767,9 @@ dependencies = [
     { name = "sniffio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f9/e8/3ce01c9802810f476a7d4273ff937584ba5941da9f06a0f3a4c10d0335c5/fireworks_ai-1.2.0a75.tar.gz", hash = "sha256:b7ccb914f2a64037fd8ab93b219565e94cd3a072fe60d0349707ab67210ba9aa", size = 416496, upload-time = "2026-06-03T18:45:34.846Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/31/83c6ec6ffdc56707a1d568369265b7c627dec05a4b05602dd42b8cbd45b3/fireworks_ai-1.2.0a82.tar.gz", hash = "sha256:0eb11e09bf7cfe1e474ece1ac7131b6cec388d95b25574b956f9a06e4f92e4a2", size = 436464, upload-time = "2026-06-16T07:48:38.368Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/49/d799dcabfb65b50423dae7d2d4715058b848be7d4d9bb8248850b8aa1d18/fireworks_ai-1.2.0a75-py3-none-any.whl", hash = "sha256:6f2dfe15ceee2a700e21f775cad5776b2726ff475095e33a10ab8cd3c3d5b5aa", size = 495789, upload-time = "2026-06-03T18:45:33.328Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/ae/eed7470d9bb5c6af02f1fd81925be97842f9de11c6a7624232d43ef28aa3/fireworks_ai-1.2.0a82-py3-none-any.whl", hash = "sha256:1046a0dc9f4d674f50e3645dc9c829dd21481871805d266ff468cdf389584be4", size = 516321, upload-time = "2026-06-16T07:48:37.015Z" },
 ]
 
 [[package]]
@@ -2028,7 +2028,7 @@ requires-dist = [
     { name = "deepagents", specifier = "==0.6.8" },
     { name = "exa-py", specifier = ">=2.13.0" },
     { name = "fastapi", specifier = ">=0.136.3" },
-    { name = "fireworks-ai", specifier = ">=1.2.0a71" },
+    { name = "fireworks-ai", specifier = ">=1.2.0a82" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "langchain", specifier = ">=1.3.4" },
     { name = "langchain-anthropic", specifier = ">=1.4.4" },
