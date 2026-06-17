@@ -30,10 +30,8 @@ _ASSISTANT_ID = "analyzer"
 
 def _client():
     """LangGraph SDK client for the current deployment (same resolution as webapp)."""
-    url = os.environ.get("LANGGRAPH_URL") or os.environ.get("LANGGRAPH_URL_PROD")
-    if url:
-        return get_client(url=url)
-    return get_client()
+    url = os.environ.get("LANGGRAPH_URL") or os.environ.get("LANGGRAPH_URL_PROD", "http://localhost:2024")
+    return get_client(url=url)
 
 
 def build_continual_run_input(full_name: str) -> dict[str, Any]:

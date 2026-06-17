@@ -144,10 +144,10 @@ if DASHBOARD_ALLOWED_ORIGINS:
         )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=DASHBOARD_ALLOWED_ORIGINS,
+        allow_origins=["*"],  # 强行允许所有来源！
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["*"],
+        allow_methods=["*"],  # 允许所有方法包括 OPTIONS 预检！
+        allow_headers=["*"],  # 允许所有请求头！
     )
 
 app.include_router(dashboard_router)

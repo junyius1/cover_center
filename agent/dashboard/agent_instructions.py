@@ -34,7 +34,9 @@ class AgentInstructionsUpdate(BaseModel):
 
 
 def _client():
-    return get_client()
+    import os
+    url = os.environ.get("LANGGRAPH_URL") or os.environ.get("LANGGRAPH_URL_PROD", "http://localhost:2024")
+    return get_client(url=url)
 
 
 async def _get_value(key: str) -> dict[str, Any] | None:

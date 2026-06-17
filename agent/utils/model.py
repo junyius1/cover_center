@@ -1,4 +1,6 @@
+import os
 from typing import Literal, TypedDict, Unpack
+import traceback
 
 from langchain.chat_models import init_chat_model
 
@@ -50,6 +52,19 @@ _ANTHROPIC_EFFORTS: set[AnthropicEffort] = {"low", "medium", "high", "xhigh", "m
 def make_model(model_id: str, **kwargs: Unpack[ModelKwargs]):
     model_kwargs: dict[str, object] = kwargs.copy()
     model_kwargs.setdefault("max_retries", DEFAULT_MAX_RETRIES)
+    print("==============================================================", model_id)
+    traceback.print_stack()
+
+    if model_id.startswith("local:"):
+        model_name = model_id.split(":", 1)[1]
+        model_kwargs["model_provider"] = "openai"
+        model_kwargs["base_url"] = os.environ.get("LOCAL_LLM_BASE_URL", "http://localhost:8080/v1")
+        model_kwargs["api_key"] = os.environ.get("LOCAL_LLM_API_KEY", "dummy")
+        model_kwargs.pop("use_responses_api", None)
+        model_kwargs.pop("reasoning", None)
+        model_kwargs.pop("thinking", None)
+        model_kwargs.pop("effort", None)
+        return init_chat_model(model=model_name, **model_kwargs)
 
     if model_id.startswith("openai:"):
         model_kwargs["base_url"] = OPENAI_RESPONSES_WS_BASE_URL

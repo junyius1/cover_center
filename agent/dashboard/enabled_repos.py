@@ -22,7 +22,9 @@ ENABLED_REVIEW_REPOS_KEY = "default"
 
 
 def _client():
-    return get_client()
+    import os
+    url = os.environ.get("LANGGRAPH_URL") or os.environ.get("LANGGRAPH_URL_PROD", "http://localhost:2024")
+    return get_client(url=url)
 
 
 async def list_enabled_review_repos() -> list[str]:

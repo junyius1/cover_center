@@ -1,6 +1,13 @@
 import axios from 'axios'
 
 const WEBDAV_BASE = 'http://192.168.0.122:5005'
+const WEBDAV_USER = '18529238162'
+const WEBDAV_PASS = 'Poad2368'
+
+// URL-encode credentials to handle special characters
+const encodedUser = encodeURIComponent(WEBDAV_USER)
+const encodedPass = encodeURIComponent(WEBDAV_PASS)
+const WEBDAV_AUTH_URL = `http://${encodedUser}:${encodedPass}@192.168.0.122:5005`
 
 const ROOT_PATH_ENCODED = '%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6/%E7%99%BE%E5%BA%A6%E4%BA%91/ubuntu/%E7%B2%BE%E9%80%89%E6%B5%B7%E9%87%8F%E8%BD%A6%E8%BD%BD%E9%9F%B3%E4%B9%90%E3%80%90%E6%8C%81%E7%BB%B4%E6%9B%B4%E6%96%B0%E3%80%91/'
 
@@ -9,7 +16,7 @@ const ROOT_PATH_ENCODED = '%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6/%E7%99%BE%E5%BA%
  * Returns the raw XML response string.
  */
 async function propfind(path = '', depth = 0) {
-  const url = `${WEBDAV_BASE}/${path}`
+  const url = `${WEBDAV_AUTH_URL}/${path}`
   const body = `<?xml version="1.0" encoding="utf-8" ?>
     <D:propfind xmlns:D="DAV:">
       <D:prop>
@@ -32,7 +39,7 @@ async function propfind(path = '', depth = 0) {
  * Returns an array of { name, isDirectory, href } objects.
  */
 async function listDirectory(path = '') {
-  const url = `${WEBDAV_BASE}/${path}`
+  const url = `${WEBDAV_AUTH_URL}/${path}`
   const body = `<?xml version="1.0" encoding="utf-8" ?>
     <D:propfind xmlns:D="DAV:">
       <D:prop>
@@ -126,7 +133,14 @@ function parsePropfindXML(xml) {
 
     // Include directories and MP3 files
     if (isDirectory || /\.mp3$/i.test(href)) {
-      items.push({ name, isDirectory, href })
+      // Build full URL with embedded credentials for audio streaming
+      let fullPath = href
+      if (!fullPath.startsWith('http')) {
+        // Remove leading slash if present, then prepend auth URL
+        fullPath = fullPath.replace(/^\//, '')
+      }
+      const fullUrl = `${WEBDAV_AUTH_URL}/${fullPath}`
+      items.push({ name, isDirectory, href: fullUrl })
     }
   }
 

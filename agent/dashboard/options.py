@@ -15,6 +15,13 @@ class ModelOption(TypedDict):
 
 SUPPORTED_MODELS: list[ModelOption] = [
     {
+        "id": "local:Qwen3.6-35B-A3B-LM-Q8_0",
+        "label": "Local Qwen3.6 35B (llama.cpp)",
+        "efforts": ["none"],
+        "default_effort": "none",
+        "supports_images": False,
+    },
+    {
         "id": "anthropic:claude-opus-4-8",
         "label": "Opus 4.8",
         "efforts": ["low", "medium", "high", "xhigh", "max"],

@@ -67,9 +67,15 @@ async def get_profile_default_repo(login: str | None) -> dict[str, str] | None:
     return {"owner": owner, "name": name}
 
 
+def _client():
+    import os
+    url = os.environ.get("LANGGRAPH_URL") or os.environ.get("LANGGRAPH_URL_PROD", "http://localhost:2024")
+    return get_client(url=url)
+
+
 async def load_profile(login: str) -> dict[str, Any] | None:
     try:
-        item = await get_client().store.get_item(PROFILES_NAMESPACE, login)
+        item = await _client().store.get_item(PROFILES_NAMESPACE, login)
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
             return None
