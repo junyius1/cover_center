@@ -5,7 +5,7 @@ const WEBDAV_USER = '18529238162'
 const WEBDAV_PASS = 'Poad2368'
 const WEBDAV_AUTH_URL = `http://${WEBDAV_USER}:${WEBDAV_PASS}@192.168.0.122:5005`
 
-const ROOT_PATH_ENCODED = '%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6/%E7%99%BE%E5%BA%A6%E4%BA%91/songs/car_music/'
+const ROOT_PATH_ENCODED = '%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6/%E7%99%BE%E5%BA%A6%E4%BA%91/songs/'
 
 const PROPFIND_BODY = `<?xml version="1.0" encoding="utf-8" ?>
     <D:propfind xmlns:D="DAV:">
@@ -81,8 +81,8 @@ function parsePropfindXML(xml, basePath = '') {
     // Build audio URL from full path
     const fullAudioUrl = `${WEBDAV_AUTH_URL}/${fullPath}`
 
-    // Include directories and MP3 files
-    if (isDirectory || /\.mp3$/i.test(href)) {
+    // Include directories and audio files (mp3, flac, wav, aac, ogg, wma, m4a, etc.)
+    if (isDirectory || /\.(mp3|flac|wav|aac|ogg|wma|m4a|alac|ape|opus)$/i.test(href)) {
       items.push({
         name,
         isDirectory,
