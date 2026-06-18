@@ -55,22 +55,19 @@ function parsePropfindXML(xml, basePath = '') {
     let href = hrefMatch[1].trim().replace(/^\//, '').replace(/\/+$/, '')
     if (href === '') continue
 
-    // Collect ALL displayname values from all propstat blocks
-    let name = ''
-    const nameMatches = raw.match(/<[^>]*displayname[^>]*>([^<]*)<\//gi)
-    if (nameMatches) {
-      for (const m of nameMatches) {
-        const content = m.replace(/<[^>]*displayname[^>]*>/i, '').replace(/<\/[^>]*$/i, '')
-        if (content.trim()) {
-          name = content.trim()
-          break
-        }
-      }
-    }
-    if (!name) name = decodeURIComponent(href.split('/').filter(Boolean).pop() || 'Unknown')
+    // Always use last segment of href as name to avoid showing parent directory names
+    const name = decodeURIComponent(href.split('/').filter(Boolean).pop() || 'Unknown')
 
     // Collect ALL collection indicators from all propstat blocks
     const isDirectory = /<[^>]*collection[^>]*>/i.test(raw)
+
+    // Remove trailing slash for consistent comparison
+    let normalizedHref = href.replace(/\/+$/, '')
+    let normalizedBase = basePath.replace(/\/+$/, '')
+
+    // Skip: current directory itself and anything outside basePath (e.g. parent dir)
+    if (normalizedHref === normalizedBase) continue
+    if (normalizedBase && !normalizedHref.startsWith(normalizedBase + '/')) continue
 
     console.log(`[Parser] name="${name}" dir=${isDirectory} href="${href}"`)
 

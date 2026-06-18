@@ -17,8 +17,8 @@
         ref="treeRef"
         :data="treeData"
         :props="treeProps"
-        node-key="path"
-        :expand-on-click-node="false"
+        node-key="webdavPath"
+        :expand-on-click-node="true"
         :load="loadNode"
         lazy
         @node-click="handleNodeClick"
@@ -68,7 +68,7 @@ async function loadRoot() {
       .filter((i) => i.isDirectory)
       .map((i) => ({
         ...i,
-        path: i.href,
+        path: i.webdavPath,
         isLeaf: false,
         fileCount: 0,
       }))
@@ -113,18 +113,19 @@ async function loadNode(node, resolve) {
       ...f,
       isDirectory: false,
       isLeaf: true,
-      path: f.href,
+      path: f.webdavPath,
     })))
   }
 
   try {
+    // node.data.path contains the FULL path from WebDAV root
     const parentPath = node.data.path
     const items = await listDirectory(parentPath)
     const folders = items
       .filter((i) => i.isDirectory)
       .map((i) => ({
         ...i,
-        path: i.href,
+        path: i.webdavPath,
         isLeaf: false,
       }))
     const mp3Files = items
@@ -133,7 +134,7 @@ async function loadNode(node, resolve) {
         ...f,
         isLeaf: true,
         isDirectory: false,
-        path: f.href,
+        path: f.webdavPath,
       }))
     resolve([...folders, ...mp3Files])
   } catch (err) {
