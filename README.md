@@ -69,11 +69,14 @@ Stripe's key insight: *tool curation matters more than tool quantity.* Open SWE 
 |---|---|
 | `execute` | Shell commands in the sandbox |
 | `fetch_url` | Fetch web pages as markdown |
+| `web_search` | Find external docs and examples, with keyless Parallel search or configured Exa |
 | `http_request` | API calls (GET, POST, etc.) |
 | `linear_comment` | Post updates to Linear tickets |
 | `slack_thread_reply` | Reply in Slack threads |
 
 GitHub operations are performed with `GH_TOKEN=dummy gh` inside the sandbox, backed by the LangSmith proxy. Plus the built-in Deep Agents tools: `read_file`, `write_file`, `edit_file`, `ls`, `glob`, `grep`, `write_todos`, and `task` (subagent spawning).
+
+Web search uses [Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp) in Fast mode when no search provider is configured. No account or API key is needed for its free, rate-limited anonymous tier. Existing `EXA_API_KEY` deployments keep using Exa. Set `WEB_SEARCH_PROVIDER=parallel` or `exa` to choose explicitly, or `none` to disable web search. See the [search configuration](CUSTOMIZATION.md#web-search) for details.
 
 **Optional observability tools (server-side):** Admins can connect Datadog and LangSmith from team settings (Admin → Observability credentials). When connected, the agent gains Datadog tools (via Datadog's hosted MCP server, default `toolsets=core`) and read-only LangSmith tools (`langsmith_get_trace`, `langsmith_list_runs`). These run in the LangGraph server process using credentials encrypted at rest — the sandbox never holds Datadog or LangSmith keys. They are loaded **only for runs triggered by an authorized user** (admins, plus any emails in `OBSERVABILITY_AUTHORIZED_EMAILS`), so a prompt-injected run from an untrusted contributor cannot reach team observability data. Use scoped, read-oriented keys regardless: observability data (logs, traces) is attacker-influenced content that can carry prompt injection, and the agent has network egress — the same residual-risk class as `web_search` / `fetch_url`.
 
