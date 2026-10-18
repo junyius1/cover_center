@@ -495,8 +495,10 @@ SLACK_CLIENT_ID=""
 SLACK_CLIENT_SECRET=""
 SLACK_TEAM_ID=""                       # Optional; restrict linking to one workspace (T...)
 
-# === Exa (optional — enables web search tool) ===
-EXA_API_KEY=""                         # From https://dashboard.exa.ai
+# === Web search (optional configuration) ===
+# Unset/empty provider: Exa when EXA_API_KEY is set, otherwise keyless Parallel MCP.
+WEB_SEARCH_PROVIDER=""                # parallel, exa, or none (disable web search)
+EXA_API_KEY=""                         # Only needed for Exa: https://dashboard.exa.ai
 
 # === Reviewer / Analyzer (optional) ===
 # LangSmith dataset where reviewer finding outcomes are recorded and read back by

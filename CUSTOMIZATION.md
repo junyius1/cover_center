@@ -250,6 +250,36 @@ The agent will automatically see the tool's name, docstring, and parameter types
 
 If you only use Linear (not Slack), remove `slack_thread_reply` from the tools list and vice versa. If you don't need web fetching, remove `fetch_url`.
 
+### Web search
+
+The coding agent, reviewer, and PR chat share the `web_search` tool. When neither
+`WEB_SEARCH_PROVIDER` nor `EXA_API_KEY` is configured, it uses the Streamable HTTP
+endpoint at `https://search.parallel.ai/mcp`. [Parallel Search MCP](https://docs.parallel.ai/integrations/mcp/search-mcp)
+provides free anonymous search in Fast mode, with no account or API key required.
+The free tier has rate limits; service errors are returned to the agent.
+
+| Configuration | Provider |
+|---|---|
+| No provider and no Exa key | Parallel MCP |
+| `EXA_API_KEY` set, provider unset | Exa, preserving existing deployments |
+| `WEB_SEARCH_PROVIDER=parallel` | Parallel MCP, even when an Exa key is set |
+| `WEB_SEARCH_PROVIDER=exa` | Exa; requires `EXA_API_KEY` |
+| `WEB_SEARCH_PROVIDER=none` | Web search disabled; no search request is made |
+
+Provider failures never switch to another service. A blank provider uses the
+automatic selection above; an unknown value returns a configuration error.
+Removing `web_search` from an agent's tools still prevents that agent from calling
+it. The existing `fetch_url` and `http_request` tools are configured separately.
+
+`web_search(query, num_results=5, include_contents=True)` accepts 1–20 results.
+With Parallel, it searches first and then extracts full page content for those
+results using MCP `web_fetch`; extraction errors remain visible in the returned
+`contents` payload. Set `include_contents=False` to return source links and metadata
+without page contents or extraction requests. Results retain the existing
+`success`, text `results`, and `error` response fields. The search has a 30-second
+overall timeout, and cancellation propagates through the async MCP session.
+The tool is asynchronous; direct Python callers should use `await web_search(...)`.
+
 ### Conditional tools
 
 You can vary the toolset based on the trigger source:
